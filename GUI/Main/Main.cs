@@ -37,7 +37,7 @@ namespace CKAN.GUI
         public GameInstance? CurrentInstance => Manager.CurrentInstance;
         private readonly RepositoryDataManager repoData;
         private readonly string? userAgent;
-        private readonly AutoUpdate updater = new AutoUpdate();
+        private readonly AutoUpdate updater;
         public bool Waiting => Wait.Busy;
 
         // Stuff we set when the game instance changes
@@ -129,6 +129,7 @@ namespace CKAN.GUI
             ModInfo.ModuleDoubleClicked += ManageMods.ResetFilterAndSelectModOnList;
             repoData = ServiceLocator.Container.Resolve<RepositoryDataManager>();
             this.userAgent = userAgent;
+            updater = new AutoUpdate(userAgent);
 
             Instance = this;
 
