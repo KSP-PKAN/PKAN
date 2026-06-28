@@ -87,15 +87,11 @@ namespace CKAN
         public readonly StabilityToleranceConfig StabilityTolerance;
 
         public IReadOnlyCollection<CkanModule> LatestCompatible
-        {
-            get
-            {
-                latestCompatible ??= Compatible.Values.Select(avail => avail.Latest(StabilityTolerance, CompatibleVersions))
-                                                      .OfType<CkanModule>()
-                                                      .ToList();
-                return latestCompatible;
-            }
-        }
+            => latestCompatible ??= Compatible.Values
+                                              .Select(avail => avail.Latest(StabilityTolerance,
+                                                                            CompatibleVersions))
+                                              .OfType<CkanModule>()
+                                              .ToArray();
 
         /// <summary>
         /// Mods that are incompatible with our versions
@@ -103,22 +99,17 @@ namespace CKAN
         public readonly ConcurrentDictionary<string, AvailableModule> Incompatible;
 
         public IReadOnlyCollection<CkanModule> LatestIncompatible
-        {
-            get
-            {
-                latestIncompatible ??= Incompatible.Values.Select(avail => avail.Latest(StabilityTolerance))
-                                                          .OfType<CkanModule>()
-                                                          .ToList();
-                return latestIncompatible;
-            }
-        }
+            => latestIncompatible ??= Incompatible.Values
+                                                  .Select(avail => avail.Latest(StabilityTolerance))
+                                                  .OfType<CkanModule>()
+                                                  .ToArray();
 
         private readonly IDictionary<string, InstalledModule>        installed;
         private readonly IReadOnlyCollection<string>                 dlls;
         private readonly IDictionary<string, UnmanagedModuleVersion> dlc;
 
-        private List<CkanModule>? latestCompatible;
-        private List<CkanModule>? latestIncompatible;
+        private IReadOnlyCollection<CkanModule>? latestCompatible;
+        private IReadOnlyCollection<CkanModule>? latestIncompatible;
 
         /// <summary>
         /// Filter the provides mapping by compatibility
@@ -129,8 +120,8 @@ namespace CKAN
         /// Mapping from identifiers to compatible mods providing those identifiers
         /// </returns>
         private static Dictionary<string, HashSet<AvailableModule>> CompatibleProviders(
-            GameVersionCriteria                    crit,
-            IDictionary<string, AvailableModule[]> providers)
+                GameVersionCriteria                    crit,
+                IDictionary<string, AvailableModule[]> providers)
             => providers
                 .AsParallel()
                 .Select(kvp => new KeyValuePair<string, HashSet<AvailableModule>>(
@@ -144,7 +135,7 @@ namespace CKAN
                 .ToDictionary();
 
         private IEnumerable<Tuple<bool?, ConcurrentDictionary<string, AvailableModule>>> getCompatGroups(
-            IEnumerable<Dictionary<string, AvailableModule>> available)
+                IEnumerable<Dictionary<string, AvailableModule>> available)
             // Merge AvailableModules with duplicate identifiers
             => available.SelectMany(dict => dict)
                         .GroupBy(kvp => kvp.Key,
@@ -194,7 +185,7 @@ namespace CKAN
                     foreach (RelationshipDescriptor rel in m.depends)
                     {
                         bool foundCompat = false;
-                        if (rel.MatchesAny(installed.Select(kvp => kvp.Value.Module).ToList(), dlls, dlc))
+                        if (rel.MatchesAny(installed.Select(kvp => kvp.Value.Module).ToArray(), dlls, dlc))
                         {
                             // Matches a DLL or DLC, cool
                             foundCompat = true;
