@@ -432,11 +432,11 @@ namespace CKAN
                                                     IGame                 game,
                                                     string                identifier)
         {
-            List<CkanModule>? releases = null;
+            CkanModule[]? releases = null;
             try
             {
                 releases = querier.AvailableByIdentifier(identifier)
-                                  .ToList();
+                                  .ToArray();
             }
             catch
             {
@@ -444,10 +444,10 @@ namespace CKAN
                 if (instMod != null)
                 {
                     releases = Enumerable.Repeat(instMod.Module, 1)
-                                         .ToList();
+                                         .ToArray();
                 }
             }
-            if (releases != null && releases.Count > 0)
+            if (releases is { Length: > 0 })
             {
                 CkanModule.GetMinMaxVersions(releases, out _, out _,
                                              out GameVersion? minKsp, out GameVersion? maxKsp);
