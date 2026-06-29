@@ -756,7 +756,7 @@ namespace Tests.Core.IO
         {
             // Arrange
             var crit = new GameVersionCriteria(new GameVersion(1, 12, 5));
-            using (var repo     = new TemporaryRepository(availableModules.Select(Relationships.RelationshipResolverTests.MergeWithDefaults)
+            using (var repo     = new TemporaryRepository(availableModules.Select(RelationshipResolverTests.MergeWithDefaults)
                                                                           .ToArray()))
             using (var repoData = new TemporaryRepositoryData(nullUser, repo.repo))
             using (var inst     = new DisposableKSP())
@@ -806,7 +806,7 @@ namespace Tests.Core.IO
         {
             // Arrange
             var crit = new GameVersionCriteria(new GameVersion(1, 12, 5));
-            using (var repo     = new TemporaryRepository(availableModules.Select(Relationships.RelationshipResolverTests.MergeWithDefaults)
+            using (var repo     = new TemporaryRepository(availableModules.Select(RelationshipResolverTests.MergeWithDefaults)
                                                                           .ToArray()))
             using (var repoData = new TemporaryRepositoryData(nullUser, repo.repo))
             using (var inst     = new DisposableKSP())
@@ -844,7 +844,7 @@ namespace Tests.Core.IO
             // Arrange
             using (var inst     = new DisposableKSP())
             using (var repo     = new TemporaryRepository(
-                                      Relationships.RelationshipResolverTests.MergeWithDefaults(
+                                      RelationshipResolverTests.MergeWithDefaults(
                                           @"{
                                               ""identifier"": ""InstallingMod"",
                                               ""suggests"": [ { ""name"": ""SuggestedMod"" } ]
@@ -904,7 +904,7 @@ namespace Tests.Core.IO
             // Arrange
             using (var inst     = new DisposableKSP())
             using (var repo     = new TemporaryRepository(
-                                      Relationships.RelationshipResolverTests.MergeWithDefaults(
+                                      RelationshipResolverTests.MergeWithDefaults(
                                           @"{
                                               ""identifier"": ""Parallax"",
                                               ""depends"": [ { ""name"": ""ParallaxTextures"" } ]
@@ -1051,7 +1051,7 @@ namespace Tests.Core.IO
         {
             // Arrange
             using (var inst     = new DisposableKSP())
-            using (var repo     = new TemporaryRepository(Relationships.RelationshipResolverTests
+            using (var repo     = new TemporaryRepository(RelationshipResolverTests
                                                                        .MergeWithDefaults(availableModules)
                                                                        .ToArray()))
             using (var repoData = new TemporaryRepositoryData(nullUser, repo.repo))
@@ -2370,7 +2370,7 @@ namespace Tests.Core.IO
             // Arrange
             using (var inst     = new DisposableKSP("TestInstance", new KerbalSpaceProgram2()))
             using (var config   = new FakeConfiguration(inst.KSP, inst.KSP.Name))
-            using (var repo     = new TemporaryRepository(Relationships.RelationshipResolverTests.MergeWithDefaults(
+            using (var repo     = new TemporaryRepository(RelationshipResolverTests.MergeWithDefaults(
                                       @"{
                                           ""identifier"": ""SpaceWarp"",
                                           ""install"": [
