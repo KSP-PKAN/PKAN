@@ -334,6 +334,7 @@ namespace CKAN
             }
             foreach (var ident in remainingIdents)
             {
+                var imod = querier.GetInstalledVersion(ident);
                 var otherIdents = remainingIdents.Where(i => i != ident)
                                                  .ToArray();
                 // Have to check HasUpdate again to account for the additions to partialSolution
@@ -354,12 +355,17 @@ namespace CKAN
                     {
                         yield return solution;
                     }
+                    if (imod == latest)
+                    {
+                        log.DebugFormat("Update for {0} is a re-install, skipping installed branch",
+                                        imod);
+                        continue;
+                    }
                 }
 
                 foreach (var solution in querier.FindUpgradeabilitySolutions(
                                              instance, otherIdents,
-                                             querier.GetInstalledVersion(ident)
-                                             is { IsDLC: false } imod
+                                             imod is { IsDLC: false }
                                                  ? partialSolution.Append((false, imod))
                                                                   .ToArray()
                                                  : partialSolution,
