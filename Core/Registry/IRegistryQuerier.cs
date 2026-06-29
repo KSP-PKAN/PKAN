@@ -312,9 +312,20 @@ namespace CKAN
                                                                                      module:      m)))
                                                  .ToArray();
             var partialMods     = partialSolution.Select(tuple => tuple.module).ToArray();
+            if (notUpgradeable.Where(m => !m.DependsAndConflictsOK(partialMods))
+                              .ToArray()
+                is { Length: > 0 } incompatInst)
+            {
+                log.DebugFormat("Installed {0} not compatible with partial solution, rejecting {1}",
+                                string.Join(", ", incompatInst.Select(m => m.ToString())),
+                                string.Join(", ", partialSolution.Select(m => m.ToString())));
+                yield break;
+            }
 
             if (remainingIdents.Length == 0)
             {
+                log.DebugFormat("Validating upgradability solution: {0}",
+                                string.Join(", ", partialSolution.Select(m => m.ToString())));
                 // We are a leaf node, return whatever we received if it is a valid solution
                 if (partialSolution.All(tuple => !tuple.upgradeable)
                     || Utilities.DefaultIfThrows(() =>
@@ -361,6 +372,13 @@ namespace CKAN
                                         imod);
                         continue;
                     }
+                }
+
+                if (imod is { IsDLC: false} && !imod.DependsAndConflictsOK(partialMods))
+                {
+                    log.DebugFormat("Installed {0} not compatible with partial solution, rejecting installed branch",
+                                    imod);
+                    continue;
                 }
 
                 foreach (var solution in querier.FindUpgradeabilitySolutions(
