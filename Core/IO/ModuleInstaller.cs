@@ -146,7 +146,7 @@ namespace CKAN.IO
             {
                 var gameDir = new DirectoryInfo(instance.GameDir);
                 long modInstallCompletedBytes = 0;
-                foreach (var mod in ModsInDependencyOrder(resolver, cached, downloads, downloader))
+                foreach (var mod in ModsInDependencyOrder(resolver, cached, new HashSet<CkanModule>(), downloads, downloader))
                 {
                     // Re-check that there's enough free space in case game dir and cache are on same drive
                     CKANPathUtils.CheckFreeSpace(gameDir, mod.install_size,
@@ -184,20 +184,21 @@ namespace CKAN.IO
 
         private static IEnumerable<CkanModule> ModsInDependencyOrder(RelationshipResolver            resolver,
                                                                      IReadOnlyCollection<CkanModule> cached,
+                                                                     ISet<CkanModule>                done,
                                                                      IReadOnlyCollection<CkanModule> toDownload,
                                                                      IDownloader?                    downloader)
 
-            => ModsInDependencyOrder(resolver, cached,
+            => ModsInDependencyOrder(resolver, cached, done,
                                      downloader != null && toDownload.Count > 0
                                          ? downloader.ModulesAsTheyFinish(cached, toDownload)
                                          : null);
 
         private static IEnumerable<CkanModule> ModsInDependencyOrder(RelationshipResolver            resolver,
                                                                      IReadOnlyCollection<CkanModule> cached,
+                                                                     ISet<CkanModule>                done,
                                                                      IEnumerable<CkanModule>?        downloading)
         {
             var waiting = new HashSet<CkanModule>();
-            var done    = new HashSet<CkanModule>();
             if (downloading != null)
             {
                 foreach (var newlyCached in downloading)
@@ -211,6 +212,7 @@ namespace CKAN.IO
             }
             else
             {
+                // With no downloading sequence, we're only going to return cached mods
                 waiting.UnionWith(cached);
                 // Treat excluded mods as already done
                 done.UnionWith(resolver.ModList().Except(waiting));
@@ -229,8 +231,8 @@ namespace CKAN.IO
         }
 
         private static IEnumerable<CkanModule> OnePass(RelationshipResolver resolver,
-                                                       HashSet<CkanModule>  waiting,
-                                                       HashSet<CkanModule>  done)
+                                                       ISet<CkanModule>     waiting,
+                                                       ISet<CkanModule>     done)
         {
             while (true)
             {
@@ -1187,6 +1189,7 @@ namespace CKAN.IO
         /// <param name="add">Modules to add</param>
         /// <param name="autoInstalled">true or false for each item in `add`</param>
         /// <param name="remove">Modules to remove</param>
+        /// <param name="skipFiles">Modules that have been reregistered without file changes</param>
         /// <param name="downloader">Downloader to use</param>
         /// <param name="deduper">Deduplicator to use</param>
         /// <param name="enforceConsistency">Whether to enforce consistency</param>
@@ -1196,6 +1199,7 @@ namespace CKAN.IO
                                IReadOnlyCollection<CkanModule>      add,
                                ISet<CkanModule>                     autoInstalled,
                                IReadOnlyCollection<InstalledModule> remove,
+                               ISet<CkanModule>                     skipFiles,
                                IDownloader                          downloader,
                                bool                                 enforceConsistency,
                                InstalledFilesDeduplicator?          deduper = null)
@@ -1229,7 +1233,7 @@ namespace CKAN.IO
                                           + installBytes  - installedBytes;
                     User.RaiseProgress(rateCounter);
                 };
-                var toInstall = ModsInDependencyOrder(resolver, cached, toDownload, downloader);
+                var toInstall = ModsInDependencyOrder(resolver, cached, skipFiles, toDownload, downloader);
 
                 long modRemoveCompletedBytes = 0;
                 foreach (var instMod in remove)
@@ -1429,6 +1433,7 @@ namespace CKAN.IO
                       toInstall,
                       autoInstalled,
                       toRemove,
+                      skipFiles ?? new HashSet<CkanModule>(),
                       downloader,
                       enforceConsistency,
                       deduper);
@@ -1531,6 +1536,7 @@ namespace CKAN.IO
                       resolvedModsToInstall,
                       new HashSet<CkanModule>(),
                       modsToRemove,
+                      new HashSet<CkanModule>(),
                       downloader,
                       enforceConsistency,
                       deduper);
